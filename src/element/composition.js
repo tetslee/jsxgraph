@@ -438,7 +438,7 @@ define([
                 "\nPossible parent types: [line,point]");
         }
         attr = Type.copyAttributes(attributes, board.options, 'perpendicularsegment', 'point');
-        t = JXG.createPerpendicularPoint(board, [l, p], attr);
+        t = JXG.createOrthogonalProjection(board, [l, p], attr);
 
         t.dump = false;
 
