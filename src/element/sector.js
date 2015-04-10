@@ -837,9 +837,16 @@ define([
                     C = this.point3,
                     r = this.Radius(),
                     d = B.Dist(A),
+                    d2 = B.Dist(C),
                     ar,
                     phi,
                     sgn = 1;
+
+                if (Math.abs(d) < Mat.eps || Math.abs(d2) < Mat.eps){
+                  this.dataX = NaN;
+                  this.dataY = NaN;
+                  return;
+                }
 
                 phi = Geometry.rad(A, B, C);
                 if ((this.visProp.selection === 'minor' && phi > Math.PI) ||
