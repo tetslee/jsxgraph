@@ -65,6 +65,7 @@
  *   <li>{@link Circumcirclemidpoint}</li>
  *   <li>{@link Integral}</li>
  *   <li>{@link Midpoint}</li>
+ *   <li>{@link Scaledpoint}</li>
  *   <li>{@link Mirrorpoint}</li>
  *   <li>{@link Normal}</li>
  *   <li>{@link Orthogonalprojection}</li>
@@ -582,6 +583,116 @@ define([
                     a1 + ')*(' + t2 + ')+(' + a1 + ')*(' + b2 + ')-(' + t1 + ')*(' + b2 + ')',
                 poly2 = '(' + a1 + ')^2 - 2*(' + a1 + ')*(' + t1 + ')+(' + a2 + ')^2-2*(' + a2 + ')*(' +
                     t2 + ')-(' + b1 + ')^2+2*(' + b1 + ')*(' + t1 + ')-(' + b2 + ')^2+2*(' + b2 + ')*(' + t2 + ')';
+
+            return [poly1, poly2];
+        };
+
+        return t;
+    };
+
+    /**
+     * @class The scaledpoint element creates a point by scaling a point about a another point.
+     * @pseudo
+     * @description A scaledpoint is given by two points (p1, p2). It is collinear to the given points and the distance
+     * from first point is the distance between the given points times the scale value.
+     * @constructor
+     * @name Scaledpoint
+     * @type JXG.Point
+     * @augments JXG.Point
+     * @throws {Error} If the element cannot be constructed with the given parent objects an exception is thrown.
+     * @param {JXG.Point_JXG.Point} p1,p2 The constructed point will be p2 scaled by val from p1.
+     * @param {int} val The constructed point will be p2 scaled by val from p1.
+     * @example
+     * // Create base elements: 2 points and 1 line
+     * var p1 = board.create('point', [0.0, 2.0]);
+     * var p2 = board.create('point', [2.0, 1.0]);
+     * var sp1 = board.create('scaledpoint', [p1, p2, 2]);
+     *
+     */
+    JXG.createScaledpoint = function (board, parents, attributes) {
+        var a, b, z, t, i;
+
+        for (i = 0; i < parents.length-1; ++i) {
+            parents[i] = board.select(parents[i]);
+        }
+        if (parents.length === 3 && Type.isPointType(parents[0], board) && Type.isPointType(parents[1], board) 
+          && Type.isNumber(parents[2])) {
+            z = parents[2];
+            parents = Type.providePoints(board, parents.slice(0,2), attributes, 'point');
+            a = parents[0];
+            b = parents[1];
+        } else {
+            throw new Error("JSXGraph: Can't create midpoint." +
+                "\nPossible parent types: [point,point,number]");
+        }
+
+        t = board.create('point', [
+            function () {
+                var x = a.coords.usrCoords[1]*(1-z) + b.coords.usrCoords[1]*z;
+                if (isNaN(x) || Math.abs(a.coords.usrCoords[0]) < Mat.eps || Math.abs(b.coords.usrCoords[0]) < Mat.eps) {
+                    return NaN;
+                }
+
+                return x;
+            },
+            function () {
+                var y = a.coords.usrCoords[2]*(1-z) + b.coords.usrCoords[2]*z;
+                if (isNaN(y) || Math.abs(a.coords.usrCoords[0]) < Mat.eps || Math.abs(b.coords.usrCoords[0]) < Mat.eps) {
+                    return NaN;
+                }
+
+                return y;
+            }], attributes);
+        a.addChild(t);
+        b.addChild(t);
+
+        t.elType = 'scaledpoint';
+        t.parents = [a.id, b.id];
+
+        t.prepareUpdate().update();
+
+        t.generatePolynomial = function () {
+            /*
+             *  Scaledpoint takes two point A and B and parameter z and creates point T:
+             *
+             *  ----------x------------------x------------------x--------
+             *            A (a1,a2)          T (t1,t2)          B (b1,b2)
+             *
+             * So we have two conditions:
+             *
+             *   (a)   AT  ||  TB           (collinearity condition)
+             *   (b)  [AT] == z*[AB]          (scaling condition)
+             *
+             *      a2-t2       t2-b2
+             *     -------  =  -------                                         (1)
+             *      a1-t1       t1-b1
+             *
+             *     (a1 - t1)^2 + (a2 - t2)^2 = z^2 * ((b1 - a1)^2 + (b2 - a2)^2)       (2)
+             *
+             *
+             * Multiplying (1) with denominators and simplifying (1) and (2) gives
+             *
+             *    a2t1 - a2b1 + t2b1 - a1t2 + a1b2 - t1b2 = 0                      (1')
+             *
+             *    (1-z^2)a1^2 - 2a1t1 + t1^2 + (1-z^2)a2^2 - 2a2t2 + t2^2 - z^2 * b1^2 + 2b1a1 - z^2 * b2^2 + 2b2a2 = 0    (2')
+             *
+             */
+
+            var a1 = a.symbolic.x,
+                a2 = a.symbolic.y,
+                b1 = b.symbolic.x,
+                b2 = b.symbolic.y,
+                t1 = t.symbolic.x,
+                t2 = t.symbolic.y,
+                zsq = z*z,
+                one_sq = 1-zsq
+
+                poly1 = '(' + a2 + ')*(' + t1 + ')-(' + a2 + ')*(' + b1 + ')+(' + t2 + ')*(' + b1 + ')-(' +
+                    a1 + ')*(' + t2 + ')+(' + a1 + ')*(' + b2 + ')-(' + t1 + ')*(' + b2 + ')',
+
+                poly2 = one_sq + '*(' + a1 + ')^2-2*(' + a1 + ')*(' + t1 + ')+(' + t1 + ')^2+' + one_sq + 
+                    '*(' + a2 + ')^2-2*(' + a2 + ')*(' + t2 + ')+(' + t2 + ')^2-' + zsq + '*(' + b1 + ')^2+2*(' +
+                    b1 + ')*(' + a1 + ')-' + zsq + '*(' + b2 + ')^2+2*(' + b2 + ')*(' + a2 + ')*'+zsq;
 
             return [poly1, poly2];
         };
@@ -2307,6 +2418,7 @@ define([
     JXG.registerElement('incircle', JXG.createIncircle);
     JXG.registerElement('integral', JXG.createIntegral);
     JXG.registerElement('midpoint', JXG.createMidpoint);
+    JXG.registerElement('scaledpoint', JXG.createScaledpoint);
     JXG.registerElement('mirrorpoint', JXG.createMirrorPoint);
     JXG.registerElement('normal', JXG.createNormal);
     JXG.registerElement('orthogonalprojection', JXG.createOrthogonalProjection);
@@ -2329,6 +2441,7 @@ define([
         createIncircle: JXG.createIncircle,
         createIntegral: JXG.createIntegral,
         createMidpoint: JXG.createMidpoint,
+        createScaledpoint: JXG.createScaledpoint,
         createMirrorPoint: JXG.createMirrorPoint,
         createNormal: JXG.createNormal,
         createOrthogonalProjection: JXG.createOrthogonalProjection,
