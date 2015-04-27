@@ -53,6 +53,10 @@ define([
 
     "use strict";
 
+    // hack to fix something wrong with loading utils/expect
+    if (!Expect && JXG)
+      setTimeout(function(){ Expect = JXG.Expect; }, 20);
+
     /**
      * Math.Geometry namespace definition
      * @name JXG.Math.Geometry
@@ -559,6 +563,33 @@ define([
             }
 
             return ps.slice(0, M);
+        },
+
+
+        /**
+         * Determine if a point is inside a complex polygon.
+         * See http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html
+         * @param pt - a point (homogoneous coordinates)
+         * @param poly - an array of points (homogoneous coordinates)
+         */
+        pointInPolygon: function(p, poly){
+          var i,
+              j,
+              c = false,
+              v = Expect.each(poly, JXG.Expect.coordsArray),
+              pt = Expect.coordsArray(p);
+          var len = v.length;
+          var x = pt[1], y = pt[2];
+
+          // Iterate the edges (j, i) of the polygon
+          for (i = 0, j = len - 1; i < len; j = i++) {
+            // test if edge crosses the ray extending horizontally right from (x,y)
+            if (((v[i][2] > y) !== (v[j][2] > y)) &&
+              (x < (v[j][1] - v[i][1]) * (y - v[i][2]) / (v[j][2] - v[i][2]) + v[i][1])) {
+              c = !c;
+            }
+          }
+          return c;
         },
 
         /**

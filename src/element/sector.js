@@ -1109,6 +1109,16 @@ define([
             return Geometry.rad(this.point2, this.point1, this.point3);
         };
 
+        el.displayValue = function () {
+          var rad = Geometry.rad(this.point2, this.point1, this.point3);
+          if ((this.visProp.selection === 'minor' && rad > Math.PI) ||
+              (this.visProp.selection === 'major' && rad < Math.PI)) {
+            rad = Math.PI*2 - rad;
+          }
+
+          return rad;
+        };
+
         el.methodMap = Type.deepCopy(el.methodMap, {
             Value: 'Value',
             setAngle: 'setAngle',
@@ -1196,6 +1206,78 @@ define([
 
     JXG.registerElement('reflexangle', JXG.createReflexAngle);
 
+    /**
+     * @class An outside angle is the complement to an interior angle of a polygon.
+     * The angle is given by the first 3 points, it is either the clockwise or anticlockwise
+     * orientation depending on which one lies inside the polygon given by the rest of the points.
+     * @params 3 or more points
+     */
+    JXG.createOutsideAngle = function(board, parents, attributes, isInterior) {
+      var points = Type.providePoints(board, parents, attributes, 'point');
+      if (points === false) {
+        throw new Error("JSXGraph: Can't create angle with parent types '" +
+          parents.map(function(v, k, ar){
+            if (k == ar.length-1)
+              return (typeof v) + "'";
+            else
+              return (typeof v) + "' and '";
+          }).join('')
+        );
+      }
+
+      var angleParents = points.slice(0,3);
+      var el = JXG.createAngle(board, angleParents, attributes);
+
+      el.polygon = points;
+      el.isInterior = isInterior || false;
+
+      // choose which angle (minor/major) is used then update as normal
+      el.updateDataArray = (function() {
+
+        var super_updateDataArray = el.updateDataArray;
+        return function() {
+          var two_pi = 2*Math.PI;
+
+          var a1 = Math.atan2(this.point2.coords.usrCoords[2]-this.point1.coords.usrCoords[2], this.point2.coords.usrCoords[1]-this.point1.coords.usrCoords[1]);
+          var a2 = Math.atan2(this.point3.coords.usrCoords[2]-this.point1.coords.usrCoords[2], this.point3.coords.usrCoords[1]-this.point1.coords.usrCoords[1]);
+          var a3 = ((a2-a1)+two_pi) % two_pi;
+
+          // select the bisector of the minor angle
+          var phi = a3/2 + a1;
+          if (a3 > Math.PI)
+            phi += Math.PI;
+
+          phi = phi % two_pi;
+
+          // a point on the bisector of the minor angle
+          var pt = [1, this.point1.coords.usrCoords[1] + 1e-5 * Math.cos( phi ), this.point1.coords.usrCoords[2] + 1e-5 * Math.sin( phi )];
+
+          // check if the point in the minor sector is inside the polygon
+          if (Geometry.pointInPolygon(pt, this.polygon) == this.isInterior)
+            this.visProp.selection = 'minor';
+          else
+            this.visProp.selection = 'major';
+
+          super_updateDataArray.apply(this)
+        };
+      }());
+
+      return el;
+    };
+
+    JXG.registerElement('outsideangle', JXG.createOutsideAngle);
+
+    /**
+     * @class An inside angle is an interior angle of a polygon.
+     * The angle is given by the first 3 points, it is either the clockwise or anticlockwise
+     * orientation depending on which one lies inside the polygon given by the rest of the points.
+     * @params 3 or more points
+     */
+    JXG.createInsideAngle = function(board, parents, attributes) {
+      return JXG.createOutsideAngle(board, parents, attributes, true);
+    };
+
+    JXG.registerElement('insideangle', JXG.createInsideAngle);
 
     return {
         createSector: JXG.createSector,
@@ -1204,6 +1286,8 @@ define([
         createMajorSector: JXG.createMajorSector,
         createAngle: JXG.createAngle,
         createReflexAngle: JXG.createReflexAngle,
-        createNonreflexAngle: JXG.createNonreflexAngle
+        createNonreflexAngle: JXG.createNonreflexAngle,
+        createOutsideAngle: JXG.createOutsideAngle,
+        createInsideAngle: JXG.createInsideAngle
     };
 });
