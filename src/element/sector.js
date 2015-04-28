@@ -1153,10 +1153,6 @@ define([
         };
 
         el.Value = function () {
-            return Geometry.rad(this.point2, this.point1, this.point3);
-        };
-
-        el.displayValue = function () {
           var rad = Geometry.rad(this.point2, this.point1, this.point3);
           if ((this.visProp.selection === 'minor' && rad > Math.PI) ||
               (this.visProp.selection === 'major' && rad < Math.PI)) {
