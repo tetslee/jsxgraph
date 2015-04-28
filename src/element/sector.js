@@ -990,6 +990,12 @@ define([
                 this.updateDataArraySquare();
             } else if (type === 'sector') {
                 this.updateDataArraySector();
+            } else if (type === 'dot') {
+                this.updateDataArraySector();
+                this.updateDataArrayNone();
+                if (!this.dot.visProp.visible) {
+                    this.dot.setAttribute({visible: true});
+                }
             } else if (type === 'sectordot') {
                 this.updateDataArraySector();
                 if (!this.dot.visProp.visible) {
@@ -997,7 +1003,7 @@ define([
                 }
             }
 
-            if (!this.visProp.visible || (type !== 'sectordot' && this.dot.visProp.visible)) {
+            if (!this.visProp.visible || (type !== 'sectordot' && type !== 'dot' && this.dot.visProp.visible)) {
                 this.dot.setAttribute({visible: false});
             }
         };
