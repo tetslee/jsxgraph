@@ -803,9 +803,48 @@ define([
             el = board.create('sector', parents, attr);
             el.updateDataArraySector = el.updateDataArray;
 
-            // TODO
-            el.setAngle = function (val) {};
-            el.free = function (val) {};
+            /**
+            * Set an angle to a prescribed value given in radians. Only sets it if the required points are free.
+            * @name setAngle
+            * @function
+            * @param {Number|Function} val Number or Function which returns the size of the angle in Radians
+            * @returns {Object} Pointer to the angle element..
+            * @memberOf Angle.prototype
+            */
+            el.setAngle = function (val) {
+                var t,
+                    p = this.point3;
+                    q = this.point2;
+
+                if (p.draggable()) {
+
+                  this.anglepoint = p; // save reference in case we have to free it later
+
+                  t = this.board.create('transform', [val, this.point1], {type: 'rotate'});
+                  p.addTransform(q, t);
+                  p.isDraggable = false;
+                  p.parents = [q];
+                }
+                return this;
+            };
+
+            /**
+            * Frees an angle from a prescribed value. This is only relevant if the angle size has been set by
+            * setAngle() previously. The anglepoint is set to a free point.
+            * @name free
+            * @function
+            * @returns {Object} Pointer to the angle element..
+            * @memberOf Angle.prototype
+            */
+            el.free = function () {
+              var p = this.anglepoint;
+              if (p.transformations.length > 0) {
+                p.transformations.pop();
+                p.isDraggable = true;
+                p.parents = [];
+              }
+              return this;
+            };
 
         } else {
             el = board.create('sector', [points[1], points[0], points[2]], attr);
@@ -1052,6 +1091,8 @@ define([
 
         el.dot.dump = false;
         el.subs.dot = el.dot;
+        
+        el.addChild(el.dot);
 
         if (type === '2lines') {
             for (i = 0; i < 2; i++) {
