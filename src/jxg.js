@@ -193,7 +193,11 @@ define([], function () {
             for (i = 0; i < arguments.length; i++) {
                 p = arguments[i];
                 if (typeof window === 'object' && window.console && console.log) {
-                    console.log(p);
+                    if (console.trace) {
+                        console.trace(p);
+                    } else {
+                        console.log(p);
+                    }
                 } else if (typeof document === 'object' && document.getElementById('debug')) {
                     document.getElementById('debug').innerHTML += p + "<br/>";
                 }
