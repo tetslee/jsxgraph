@@ -298,14 +298,32 @@ define([
                 tickStr = '',
                 len = ticks.ticks.length;
 
-            for (i = 0; i < len; i++) {
-                c = ticks.ticks[i];
-                x = c[0];
-                y = c[1];
+            if (ticks.visProp.ticksymbol == 'line'){
+                for (i = 0; i < len; i++) {
+                    c = ticks.ticks[i];
+                    x = c[0];
+                    y = c[1];
 
-                if (typeof x[0] === 'number' && typeof x[1] === 'number') {
-                    tickStr += "M " + (x[0]) + " " + (y[0]) + " L " + (x[1]) + " " + (y[1]) + " ";
+                    if (typeof x[0] === 'number' && typeof x[1] === 'number') {
+                        tickStr += "M " + (x[0]) + " " + (y[0]) + " L " + (x[1]) + " " + (y[1]) + " ";
+                    }
                 }
+            }
+            else {
+                for (i = 0; i < len; i++) {
+                    c = ticks.ticks[i];
+                    x = c[0];
+                    y = c[1];
+                    if (typeof x[0] === 'number') {
+                        if (i==0){
+                            tickStr += "M " + (x[0]) + " " + (y[0]) + " ";
+                        }
+                        else {
+                            tickStr += "L " + (x[0]) + " " + (y[0]) + " ";
+                        }
+                    }
+                }
+                this.makeArrows(ticks);
             }
 
             node = ticks.rendNode;
@@ -316,6 +334,7 @@ define([
                 ticks.rendNode = node;
             }
 
+            node.setAttributeNS(null, 'fill', 'none');
             node.setAttributeNS(null, 'stroke', ticks.visProp.strokecolor);
             node.setAttributeNS(null, 'stroke-opacity', ticks.visProp.strokeopacity);
             node.setAttributeNS(null, 'stroke-width', ticks.visProp.strokewidth);
@@ -517,6 +536,22 @@ define([
                     this.remove(node2);
                 }
             }
+            if (el.visProp.midarrow) {
+                node2 = el.rendNodeTriangleMid;
+                if (!Type.exists(node2)) {
+                    node2 = this._createArrowHead(el, 'Start');
+                    this.defs.appendChild(node2);
+                    el.rendNodeTriangleMid = node2;
+                    el.rendNode.setAttributeNS(null, 'marker-mid', 'url(#' + this.container.id + '_' + el.id + 'TriangleStart)');
+                } else {
+                    this.defs.appendChild(node2);
+                }
+            } else {
+                node2 = el.rendNodeTriangleMid;
+                if (Type.exists(node2)) {
+                    this.remove(node2);
+                }
+            }
             if (el.visProp.lastarrow) {
                 node2 = el.rendNodeTriangleEnd;
                 if (!Type.exists(node2)) {
@@ -533,6 +568,8 @@ define([
                     this.remove(node2);
                 }
             }
+
+            el.visPropOld.midarrow = el.visProp.midarrow;
             el.visPropOld.firstarrow = el.visProp.firstarrow;
             el.visPropOld.lastarrow = el.visProp.lastarrow;
         },

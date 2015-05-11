@@ -885,6 +885,9 @@ define([
             strokeOpacity: 1,
             strokeWidth: 1,
             strokeColor: 'black',
+            tickSymbol: 'line',
+            midArrow: false,
+            lastArrow: false,
             highlightStrokeColor: '#888888',
 
             /**
@@ -908,6 +911,24 @@ define([
             drawZero: true,
             majorHeight: 20,
             anchor: 'middle',
+            tickSymbol: 'line',
+            strokeWidth: 2,
+            strokeColor: 'blue',
+            ticksDistance: 0.2
+        },
+
+         /*
+          *  Generic options used by {@link JXG.Arrowticks} 
+          */
+        arrowticks: {
+            midArrow: true,
+            lastArrow: true,
+            drawLabels: false,
+            drawZero: true,
+            majorHeight: 0,
+            minorHeight: 0,
+            anchor: 'middle',
+            tickSymbol: 'arrow',
             strokeWidth: 2,
             strokeColor: 'blue',
             ticksDistance: 0.2

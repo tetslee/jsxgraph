@@ -1029,16 +1029,96 @@ define([
 
         el = board.create('ticks', [parents[0], pos], attr);
         el.elType = 'hatch';
+        return el;
+    };
+
+    /**
+     * @class Arrow heads to mark parallel lines.
+     * @pseudo
+     * @description
+     * @name Parallel
+     * @augments JXG.Ticks
+     * @constructor
+     * @type JXG.Ticks
+     * @throws {Exception} If the element cannot be constructed with the given parent objects an exception is thrown.
+     * @param {JXG.Line,Number} line, numberofticks The parents consist of the line the arrows are going to be attached to and the
+     * number of arrow ticks.
+     * @example
+     * // Create an axis providing two coord pairs.
+     *   var p1 = board.create('point', [0, 3]);
+     *   var p2 = board.create('point', [1, 3]);
+     *   var l1 = board.create('line', [p1, p2]);
+     *   var t = board.create('arrowticks', [l1, 3]);
+     * </pre><div id="4a20af06-4395-451c-b7d1-002757cf01be-arrow" style="width: 300px; height: 300px;"></div>
+     * <script type="text/javascript">
+     * (function () {
+     *   var board = JXG.JSXGraph.initBoard('4a20af06-4395-451c-b7d1-002757cf01be-arrow', {boundingbox: [-1, 7, 7, -1], showcopyright: false, shownavigation: false});
+     *   var p1 = board.create('point', [0, 3]);
+     *   var p2 = board.create('point', [1, 3]);
+     *   var l1 = board.create('line', [p1, p2]);
+     *   var t = board.create('arrowticks', [l1, 3]);
+     * })();
+     * </script><pre>
+     */
+    JXG.createArrowticks = function (board, parents, attributes) {
+        var num, i, base, width, totalwidth, el,
+            pos = [],
+            attr = Type.copyAttributes(attributes, board.options, 'arrowticks');
+
+        if (parents[0].elementClass !== Const.OBJECT_CLASS_LINE || typeof parents[1] !== 'number') {
+            throw new Error("JSXGraph: Can't create arrowticks with parent types '" + (typeof parents[0]) + "' and '" + (typeof parents[1]) + "'.");
+        }
+
+        num = parents[1]+1; // the first point has no arrow
+        width = attr.ticksdistance;
+        totalwidth = (num - 1) * width;
+        base = -totalwidth / 2;
+
+        for (i = 0; i < num; i++) {
+            pos[i] = base + i * width;
+        }
+
+        el = board.create('ticks', [parents[0], pos], attr);
+
+        el.elType = 'arrowticks';
+
+        /**
+         * Checks whether (x,y) is near the line.
+         * @param {Number} x Coordinate in x direction, screen coordinates.
+         * @param {Number} y Coordinate in y direction, screen coordinates.
+         * @return {Boolean} True if (x,y) is near the line, False otherwise.
+         */
+        el.hasPoint = function (x, y) {
+            return false;
+        };
+
+        /**
+         * @param {JXG.Coords} coords Coordinates of the tick on the line.
+         * @param {Boolean} major True if tick is major tick.
+         * @return {Array} Array of length 3 containing start and end coordinates in screen coordinates
+         *                 of the tick (arrays of length 2). 3rd entry is true if major tick otherwise false.
+         *                 If the tick is outside of the canvas, the return array is empty.
+         * @private
+         */
+        el.tickEndings = function (coords, major) {
+            var x = coords.scrCoords[1];
+            var y = coords.scrCoords[2];
+            return [[x,x], [y,y], major];
+        };
+
+        return el;
     };
 
     JXG.registerElement('ticks', JXG.createTicks);
     JXG.registerElement('hash', JXG.createHatchmark);
     JXG.registerElement('hatch', JXG.createHatchmark);
+    JXG.registerElement('arrowticks', JXG.createArrowticks);
 
     return {
         Ticks: JXG.Ticks,
         createTicks: JXG.createTicks,
         createHashmark: JXG.createHatchmark,
-        createHatchmark: JXG.createHatchmark
+        createHatchmark: JXG.createHatchmark,
+        createArrowticks: JXG.createArrowticks
     };
 });
