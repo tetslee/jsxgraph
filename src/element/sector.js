@@ -213,13 +213,16 @@ define([
                     A = [0, 0, 0],
                     B = [0, 0, 0],
                     C = [0, 0, 0],
-                    ar;
+                    ar,
+                    sgn=1,
+                    phi;
 
                 l1 = this.line1;
                 l2 = this.line2;
 
                 // Intersection point of the lines
                 B = Mat.crossProduct(l1.stdform, l2.stdform);
+
 
                 if (Math.abs(B[0]) > Mat.eps * Mat.eps) {
                     B[1] /= B[0];
@@ -244,7 +247,15 @@ define([
                     return;
                 }
 
-                ar = Geometry.bezierArc(A, B, C, true, 1);
+                if (typeof this.visProp.selection !== 'undefined') {
+                  phi = Geometry.rad(this.point2, this.point1, this.point3);
+                  if ((this.visProp.selection === 'minor' && phi > Math.PI) ||
+                          (this.visProp.selection === 'major' && phi < Math.PI)) {
+                      sgn = -1;
+                  }
+                }
+
+                ar = Geometry.bezierArc(A, B, C, true, sgn);
 
                 this.dataX = ar[0];
                 this.dataY = ar[1];
@@ -1319,7 +1330,7 @@ define([
     JXG.createInsideAngle = function(board, parents, attributes) {
       return JXG.createOutsideAngle(board, parents, attributes, true);
     };
-
+    
     JXG.registerElement('insideangle', JXG.createInsideAngle);
 
     return {
