@@ -929,9 +929,9 @@ define([
             minorHeight: 0,
             anchor: 'middle',
             tickSymbol: 'arrow',
-            strokeWidth: 2,
+            strokeWidth: 1,
             strokeColor: 'blue',
-            ticksDistance: 0.2
+            ticksDistance: 0.3
         },
 
         /**

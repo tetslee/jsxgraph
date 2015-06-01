@@ -374,6 +374,20 @@ define([
                 ], this.board);
             }
 
+            if (this.visProp.anchor === 'middle-left') {
+                return new Coords(Const.COORDS_BY_USER, [
+                    (this.line.point1.coords.usrCoords[1]*2 + this.line.point2.coords.usrCoords[1]) / 3,
+                    (this.line.point1.coords.usrCoords[2]*2 + this.line.point2.coords.usrCoords[2]) / 3
+                ], this.board);
+            }
+
+            if (this.visProp.anchor === 'middle-right') {
+                return new Coords(Const.COORDS_BY_USER, [
+                    (this.line.point1.coords.usrCoords[1] + this.line.point2.coords.usrCoords[1]*2) / 3,
+                    (this.line.point1.coords.usrCoords[2] + this.line.point2.coords.usrCoords[2]*2) / 3
+                ], this.board);
+            }
+
             return this.line.point1.coords;
         },
 
